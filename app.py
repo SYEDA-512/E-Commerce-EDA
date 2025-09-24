@@ -42,8 +42,6 @@ if available_cols:
     st.pyplot(fig)
 else:
     st.warning("⚠️ Columns ['quantity', 'price', 'discount'] not found in dataset.")
-
-
     # --- Numeric distribution plots ---
     st.subheader("Numeric Distributions")
     num_cols = df.select_dtypes(include="number").columns.tolist()
