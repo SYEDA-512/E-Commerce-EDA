@@ -3,60 +3,60 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Title
-st.title("📊 Exploratory Data Analysis (EDA) App")
+st.set_page_config(page_title="E-Commerce EDA", layout="wide")
 
-# Load dataset
-uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+# --- Title ---
+st.title("📊 E-Commerce Dataset Explorer")
+
+# --- File uploader ---
+uploaded_file = st.file_uploader("C:/Users/User/OneDrive/Documents/ecommerce_dataset.csv", type=["csv"])
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+    # Load dataset
+    df = pd.read_csv(uploaded_file, low_memory=False)
 
-    # Dataset preview
-    st.subheader("🔍 Dataset Preview")
+    # --- Show dataset preview ---
+    st.subheader("Dataset Preview")
     st.write(df.head())
 
-    # Shape of dataset
-    st.write("**Shape of dataset:**", df.shape)
-
-    # Missing values
-    st.subheader("🧹 Missing Values")
-    st.write(df.isnull().sum())
-
-    # Summary statistics
-    st.subheader("📈 Summary Statistics")
+    # --- Summary statistics ---
+    st.subheader("Summary Statistics")
     st.write(df.describe(include="all"))
 
-    # Correlation heatmap (for numeric columns)
-    st.subheader("🔥 Correlation Heatmap")
-    numeric_df = df.select_dtypes(include=['int64', 'float64'])
-    if not numeric_df.empty:
-        corr = numeric_df.corr()
-        plt.figure(figsize=(8,6))
-        sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f")
-        st.pyplot()
-    else:
-        st.info("No numeric columns available for correlation heatmap.")
+    # --- Missing values ---
+    st.subheader("Missing Values")
+    missing = df.isnull().sum().reset_index()
+    missing.columns = ["Column", "Missing Values"]
+    st.write(missing[missing["Missing Values"] > 0])
 
-    # Column-wise analysis
-    st.subheader("📊 Column-wise Analysis")
-    column = st.selectbox("Select a column to analyze", df.columns)
+    # --- Correlation heatmap ---
+    st.subheader("Correlation Heatmap")
+    num_cols = df.select_dtypes(include="number")
+    if not num_cols.empty:
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.heatmap(num_cols.corr(), annot=True, cmap="coolwarm", ax=ax)
+        st.pyplot(fig)
 
-    if pd.api.types.is_numeric_dtype(df[column]):
-        st.write(df[column].describe())
-        plt.figure(figsize=(8,5))
-        sns.histplot(df[column], kde=True, bins=20)
-        plt.title(f"Distribution of {column}")
-        st.pyplot()
-    else:
-        st.write(df[column].value_counts())
-        plt.figure(figsize=(8,5))
-        sns.countplot(x=df[column])
-        plt.xticks(rotation=45)
-        plt.title(f"Count plot of {column}")
-        st.pyplot()
+    # --- Numeric distribution plots ---
+    st.subheader("Numeric Distributions")
+    num_cols = df.select_dtypes(include="number").columns.tolist()
+    if num_cols:
+        selected_num = st.selectbox("Select a numeric column:", num_cols)
+        fig, ax = plt.subplots(figsize=(8, 4))
+        sns.histplot(df[selected_num].dropna(), bins=30, kde=True, ax=ax)
+        st.pyplot(fig)
 
-    # Pairplot (optional for smaller datasets)
-    if st.checkbox("Show Pairplot (may be slow for large data)"):
-        sns.pairplot(df.select_dtypes(include=['int64','float64']))
-        st.pyplot()
+    # --- Categorical column plots ---
+    st.subheader("Top Categories")
+    cat_cols = df.select_dtypes(include="object").columns.tolist()
+    if cat_cols:
+        selected_cat = st.selectbox("Select a categorical column:", cat_cols)
+        top_cats = df[selected_cat].value_counts().head(10)
+        fig, ax = plt.subplots(figsize=(8, 4))
+        sns.barplot(x=top_cats.values, y=top_cats.index, ax=ax)
+        ax.set_xlabel("Count")
+        ax.set_ylabel(selected_cat)
+        st.pyplot(fig)
+
+else:
+    st.info("👆 Upload a CSV file to begin")
