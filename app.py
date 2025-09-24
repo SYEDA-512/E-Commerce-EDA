@@ -30,12 +30,19 @@ if uploaded_file is not None:
     st.write(missing[missing["Missing Values"] > 0])
 
     # --- Correlation heatmap ---
-    st.subheader("Correlation Heatmap")
-    num_cols = df.select_dtypes(include="number")
-    if not num_cols.empty:
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.heatmap(num_cols.corr(), annot=True, cmap="coolwarm", ax=ax)
-        st.pyplot(fig)
+st.subheader("Correlation Heatmap (Quantity, Price, Discount)")
+
+# Select only relevant columns (drop IDs)
+cols_to_use = ['quantity', 'price', 'discount']
+available_cols = [col for col in cols_to_use if col in df.columns]  # check if they exist
+
+if available_cols:
+    fig, ax = plt.subplots(figsize=(6, 4))
+    sns.heatmap(df[available_cols].corr(), annot=True, cmap="coolwarm", ax=ax, center=0)
+    st.pyplot(fig)
+else:
+    st.warning("⚠️ Columns ['quantity', 'price', 'discount'] not found in dataset.")
+
 
     # --- Numeric distribution plots ---
     st.subheader("Numeric Distributions")
