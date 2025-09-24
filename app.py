@@ -3,47 +3,47 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# --- Page setup ---
 st.set_page_config(page_title="E-Commerce EDA", layout="wide")
 
 # --- Title ---
 st.title("📊 E-Commerce Dataset Explorer")
 
 # --- File uploader ---
-uploaded_file = st.file_uploader("C:/Users/User/OneDrive/Documents/ecommerce_dataset.csv", type=["csv"])
+uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 
 if uploaded_file is not None:
     # Load dataset
     df = pd.read_csv(uploaded_file, low_memory=False)
 
     # --- Show dataset preview ---
-    st.subheader("Dataset Preview")
+    st.subheader("📑 Dataset Preview")
     st.write(df.head())
 
     # --- Summary statistics ---
-    st.subheader("Summary Statistics")
+    st.subheader("📊 Summary Statistics")
     st.write(df.describe(include="all"))
 
     # --- Missing values ---
-    st.subheader("Missing Values")
+    st.subheader("⚠️ Missing Values")
     missing = df.isnull().sum().reset_index()
     missing.columns = ["Column", "Missing Values"]
     st.write(missing[missing["Missing Values"] > 0])
 
-    # --- Correlation heatmap ---
-st.subheader("Correlation Heatmap (Quantity, Price, Discount)")
+    # --- Correlation heatmap (Quantity, Price, Discount only) ---
+    st.subheader("🔗 Correlation Heatmap (Quantity, Price, Discount)")
+    cols_to_use = ["quantity", "price", "discount"]
+    available_cols = [col for col in cols_to_use if col in df.columns]
 
-# Select only relevant columns (drop IDs)
-cols_to_use = ['quantity', 'price', 'discount']
-available_cols = [col for col in cols_to_use if col in df.columns]  # check if they exist
+    if available_cols:
+        fig, ax = plt.subplots(figsize=(6, 4))
+        sns.heatmap(df[available_cols].corr(), annot=True, cmap="coolwarm", ax=ax, center=0)
+        st.pyplot(fig)
+    else:
+        st.warning("⚠️ Columns ['quantity', 'price', 'discount'] not found in dataset.")
 
-if available_cols:
-    fig, ax = plt.subplots(figsize=(6, 4))
-    sns.heatmap(df[available_cols].corr(), annot=True, cmap="coolwarm", ax=ax, center=0)
-    st.pyplot(fig)
-else:
-    st.warning("⚠️ Columns ['quantity', 'price', 'discount'] not found in dataset.")
     # --- Numeric distribution plots ---
-    st.subheader("Numeric Distributions")
+    st.subheader("📈 Numeric Distributions")
     num_cols = df.select_dtypes(include="number").columns.tolist()
     if num_cols:
         selected_num = st.selectbox("Select a numeric column:", num_cols)
@@ -52,7 +52,7 @@ else:
         st.pyplot(fig)
 
     # --- Categorical column plots ---
-    st.subheader("Top Categories")
+    st.subheader("🏷️ Top Categories")
     cat_cols = df.select_dtypes(include="object").columns.tolist()
     if cat_cols:
         selected_cat = st.selectbox("Select a categorical column:", cat_cols)
